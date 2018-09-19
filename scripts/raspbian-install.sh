@@ -53,13 +53,12 @@ main() {
     need_cmd grep
     need_cmd mktemp
 
-    check_os_version
 
     install_wfc
 
     activate_network_manager
 
-    say "Run 'wifi-connect --help' for available options"
+    say "Run '$INSTALL_BIN_DIR/wifi-connect --help' for available options"
 }
 
 check_os_version() {
@@ -184,7 +183,7 @@ install_wfc() {
 
     ensure rm -rdf "$_download_dir"
 
-    _wfc_version=$(ensure wifi-connect --version)
+    _wfc_version=$(ensure $INSTALL_BIN_DIR/wifi-connect --version)
 
     say "Successfully installed $_wfc_version"
 }
