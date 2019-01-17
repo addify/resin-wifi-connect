@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use std::fs::File;
 use std::path::Path;
 use serde_json;
+use std::process::Command;
 
 #[derive(Serialize, Deserialize)]
 pub struct ClientConfig{
@@ -41,4 +42,12 @@ pub fn saveConfig(clientConfig: ClientConfig){
             },
             Err(e) => println!("error {:?}", e),
         }
+}
+
+pub fn restartAddifyService(){
+
+    let output = Command::new("systemctl")
+                     .arg(" restart addify.service")
+                     .output()
+                     .expect("Failed to execute command");
 }

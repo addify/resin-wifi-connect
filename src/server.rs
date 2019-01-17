@@ -22,6 +22,7 @@ use exit::{exit, ExitResult};
 
 use userconfig::saveConfig;
 use userconfig::ClientConfig;
+use userconfig::restartAddifyService;
 
 struct RequestSharedState {
     gateway: Ipv4Addr,
@@ -234,6 +235,7 @@ fn connect(req: &mut Request) -> IronResult<Response> {
     if let Err(e) = request_state.network_tx.send(command) {
         exit_with_error(&request_state, e, ErrorKind::SendNetworkCommandConnect)
     } else {
+        restartAddifyService();
         Ok(Response::with(status::Ok))
     }
 }
