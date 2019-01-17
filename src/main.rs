@@ -21,6 +21,8 @@ extern crate nix;
 extern crate params;
 extern crate persistent;
 extern crate router;
+extern crate serde;
+#[macro_use]
 extern crate serde_json;
 extern crate staticfile;
 
@@ -32,6 +34,7 @@ mod dnsmasq;
 mod logger;
 mod exit;
 mod privileges;
+mod userconfig;
 
 use std::path;
 use std::thread;

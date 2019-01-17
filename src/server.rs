@@ -20,6 +20,9 @@ use errors::*;
 use network::{NetworkCommand, NetworkCommandResponse};
 use exit::{exit, ExitResult};
 
+use userconfig::saveConfig;
+use userconfig::ClientConfig;
+
 struct RequestSharedState {
     gateway: Ipv4Addr,
     server_rx: Receiver<NetworkCommandResponse>,
@@ -200,6 +203,21 @@ fn connect(req: &mut Request) -> IronResult<Response> {
         let ssid = get_param!(params, "ssid", String);
         let identity = get_param!(params, "identity", String);
         let passphrase = get_param!(params, "passphrase", String);
+
+        let device_name = get_param!(params, "deviceName", String);
+        let location = get_param!(params, "location", String);
+        let token = get_param!(params, "token", String);
+        let server_url = get_param!(params, "serverURL", String);
+        
+        let clientConfig = ClientConfig {
+            deviceName: device_name.to_owned(),
+            location: location.to_owned(),
+            serverURL: server_url.to_owned(),
+            token: token.to_owned(),
+        };
+
+        saveConfig(clientConfig);
+
         (ssid, identity, passphrase)
     };
 
