@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -u
+#set -u
 
 trap "exit 1" TERM
 export TOP_PID=$$
@@ -18,6 +18,10 @@ RELEASE_URL="https://api.github.com/repos/$WFC_REPO/releases/latest"
 
 CONFIRMATION=true
 
+LOCAL_BUILD_FILE=""
+
+RESTART_AFTER_FINISH=false
+
 usage() {
     cat 1>&2 <<EOF
 $NAME 1.0.1 (2018-21-03)
@@ -28,12 +32,14 @@ USAGE:
 FLAGS:
     -y                      Disable confirmation prompt
     -h, --help              Prints help information
+    -f  build.tar.gz        User local .tar.gz build file
+    -r                      Restart after finish
 EOF
 }
 
 main() {
-    for arg in "$@"; do
-        case "$arg" in
+    for ((i = 1; i <= $#; i++ )); do
+        case "${!i}" in
             -h|--help)
                 usage
                 exit 0
@@ -41,10 +47,19 @@ main() {
             -y)
                 CONFIRMATION=false
                 ;;
+            -f)
+                let "j=$i+1"
+                LOCAL_BUILD_FILE="${!j}"
+                ;;
+            -r)
+                RESTART_AFTER_FINISH=true
+                ;;
             *)
                 ;;
         esac
     done
+
+    echo "LOCAL_BUILD_FILE=$LOCAL_BUILD_FILE"
 
     need_cmd id
     need_cmd curl
@@ -55,11 +70,15 @@ main() {
 
     check_os_version
 
-    install_wfc
+    install_wfc $LOCAL_BUILD_FILE
 
     activate_network_manager
 
     say "Run 'wifi-connect --help' for available options"
+
+    if [ "$RESTART_AFTER_FINISH" = true ]; then
+        reboot now
+    fi
 }
 
 check_os_version() {
@@ -163,17 +182,20 @@ install_wfc() {
     local _arch_url
     local _wfc_version
     local _download_dir
-
-    say "Retrieving latest release from $RELEASE_URL..."
-
-    _arch_url=$(ensure curl "$RELEASE_URL" -s | grep -hoP "$_regex")
-
-    say "Downloading and extracting $_arch_url..."
-
     _download_dir=$(ensure mktemp -d)
 
-    ensure curl -Ls "$_arch_url" | tar -xz -C "$_download_dir"
+    if [ -z $1 ];then
+        say "Retrieving latest release from $RELEASE_URL..."
 
+        _arch_url=$(ensure curl "$RELEASE_URL" -s | grep -hoP "$_regex")
+
+        say "Downloading and extracting $_arch_url..."
+
+        ensure curl -Ls "$_arch_url" | tar -xz -C "$_download_dir"
+    else
+        say "Using local tar.gz file set as parameter: $1"
+        tar -xzv --file=$1 -C "$_download_dir"
+    fi
     ensure sudo mv "$_download_dir/wifi-connect" $INSTALL_BIN_DIR
 
     ensure sudo mkdir -p $INSTALL_UI_DIR
